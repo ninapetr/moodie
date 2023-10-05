@@ -1,28 +1,49 @@
 import pyaudio
+import numpy as np
+import noisereduce as nr
+import wave
 import requests
+
+# Set parameters for PyAudio
+CHUNK = 1024
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 44100
 
 API_URL = "https://api-inference.huggingface.co/models/ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
 headers = {"Authorization": "Bearer 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"}
 
-FRAME_RATE = 16000
-CHANNELS = 1
-FRAMES_PER_BUFFER = 8192
-AUDIO_FORMAT = pyaudio.paInt16
+# Initialize PyAudio
+p = pyaudio.PyAudio()
 
-mic = pyaudio.PyAudio()
-stream = mic.open(channels=CHANNELS,
-                  format=AUDIO_FORMAT,
-                  rate=FRAME_RATE,
-                  input=True,
-                  frames_per_buffer=FRAMES_PER_BUFFER)
+# Open audio stream
+stream = p.open(format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                input=True,
+                frames_per_buffer=CHUNK)
 
-stream.start_stream()
 print("Listening...")
 
 while True:
-    data = stream.read(10096)
+    # Record audio input
+    frames = []
+    for i in range(0, int(RATE / CHUNK * 5)):
+        data = stream.read(CHUNK)
+        frames.append(data)
 
-    # pain
+    # Convert audio input to numpy array
+    audio_data = np.frombuffer(b''.join(frames), dtype=np.int16)
 
-    response = requests.post(API_URL, headers=headers, data=data)
-    print(response.json())
+    # Perform noise reduction
+    reduced_noise = nr.reduce_noise(y=audio_data, sr=RATE)
+
+    # Save cleaned audio to WAV file
+    # with wave.open("cleaned_audio.wav", "wb") as wav_file:
+    #     wav_file.setnchannels(CHANNELS)
+    #     wav_file.setsampwidth(p.get_sample_size(FORMAT))
+    #     wav_file.setframerate(RATE)
+    #     wav_file.writeframes(reduced_noise.tobytes())
+
+    # response = requests.post(API_URL, headers=headers, data=reduced_noise.all())
+    # print(response.json())
