@@ -24,5 +24,5 @@ while True:
 
     # pain
 
-    response = requests.post(API_URL, headers=headers, files={"file": ("audio.wav", wav_file)})
+    response = requests.post(API_URL, headers=headers, data=data})
     print(response.json())
