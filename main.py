@@ -1,41 +1,28 @@
 import pyaudio
-import numpy as np
-import subprocess
-import json
+import requests
 
-from vosk import Model, KaldiRecognizer
-from transformers import RobertaTokenizerFast, TFRobertaForSequenceClassification, pipeline
-
+API_URL = "https://api-inference.huggingface.co/models/ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
+headers = {"Authorization": "Bearer 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"}
 
 FRAME_RATE = 16000
 CHANNELS = 1
 FRAMES_PER_BUFFER = 8192
 AUDIO_FORMAT = pyaudio.paInt16
 
-
 mic = pyaudio.PyAudio()
-model = Model(model_name="vosk-model-en-us-0.22")
-rec = KaldiRecognizer(model, FRAME_RATE)
-
-# tokenizer = RobertaTokenizerFast.from_pretrained("arpanghoshal/EmoRoBERTa")
-# model = TFRobertaForSequenceClassification.from_pretrained("arpanghoshal/EmoRoBERTa")
-emotion = pipeline('sentiment-analysis', 
-                    model='arpanghoshal/EmoRoBERTa')
-
-stream = mic.open(channels = CHANNELS,
-                format = AUDIO_FORMAT,
-                rate = FRAME_RATE,
-                input = True,
-                frames_per_buffer=FRAMES_PER_BUFFER)
+stream = mic.open(channels=CHANNELS,
+                  format=AUDIO_FORMAT,
+                  rate=FRAME_RATE,
+                  input=True,
+                  frames_per_buffer=FRAMES_PER_BUFFER)
 
 stream.start_stream()
 print("Listening...")
 
 while True:
-    data = stream.read(4096)
-    if rec.AcceptWaveform(data):
-        result = rec.Result()
-        text = json.loads(result)["text"]
-        print(text)
-        emotion_labels = emotion(text)
-        print(emotion_labels)
+    data = stream.read(10096)
+
+    # pain
+
+    response = requests.post(API_URL, headers=headers, files={"file": ("audio.wav", wav_file)})
+    print(response.json())
