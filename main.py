@@ -39,11 +39,13 @@ while True:
     reduced_noise = nr.reduce_noise(y=audio_data, sr=RATE)
 
     # Save cleaned audio to WAV file
-    # with wave.open("cleaned_audio.wav", "wb") as wav_file:
-    #     wav_file.setnchannels(CHANNELS)
-    #     wav_file.setsampwidth(p.get_sample_size(FORMAT))
-    #     wav_file.setframerate(RATE)
-    #     wav_file.writeframes(reduced_noise.tobytes())
+    with wave.open("cleaned_audio.wav", "wb") as wav_file:
+        wav_file.setnchannels(CHANNELS)
+        wav_file.setsampwidth(p.get_sample_size(FORMAT))
+        wav_file.setframerate(RATE)
+        wav_file.writeframes(reduced_noise.tobytes())
 
-    # response = requests.post(API_URL, headers=headers, data=reduced_noise.all())
-    # print(response.json())
+    with open("cleaned_audio.wav", "rb") as f:
+        data = f.read()  
+        response = requests.post(API_URL, headers=headers, data=data)
+        print(response.json())
